@@ -18,6 +18,8 @@ asset_dir = "public"
 # HTML title tag content
 title = "Advent of Code 2023 Solver"
 
+base_path = "advent-2023"
+
 [web.watcher]
 
 # when watcher trigger, regenerate the `index.html`
