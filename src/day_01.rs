@@ -5,13 +5,11 @@ pub fn solve_1(input: &str) -> String {
     for row in input.lines() {
         let mut calibration_value = None;
         for c in row.chars() {
-            if c < '1' || c > '9' {
-                continue;
-            }
-            let n = (c as u32 - '0' as u32);
-            calibration_value = match calibration_value {
-                None => Some((n, n)),
-                Some((n1, n2)) => Some((n1, n)),
+            if let Some(n) = c.to_digit(10) {
+                calibration_value = match calibration_value {
+                    None => Some((n, n)),
+                    Some((n1, _)) => Some((n1, n)),
+                }
             }
         }
         if let Some((n1, n2)) = calibration_value {
@@ -26,8 +24,8 @@ pub fn solve_2(input: &str) -> String {
     for row in input.lines() {
         let mut calibration_value = None;
         for (i, c) in row.chars().enumerate() {
-            let n = if c >= '1' && c <= '9' {
-                (c as u32 - '0' as u32)
+            let n = if let Some(n) = c.to_digit(10) {
+                n
             } else if row[i..].starts_with("one") {
                 1
             } else if row[i..].starts_with("two") {
@@ -51,7 +49,7 @@ pub fn solve_2(input: &str) -> String {
             };
             calibration_value = match calibration_value {
                 None => Some((n, n)),
-                Some((n1, n2)) => Some((n1, n)),
+                Some((n1, _)) => Some((n1, n)),
             }
         }
         if let Some((n1, n2)) = calibration_value {
@@ -59,4 +57,42 @@ pub fn solve_2(input: &str) -> String {
         }
     }
     return res.to_string();
+}
+
+#[cfg(test)]
+mod tests {
+    use indoc::indoc;
+    use super::*;
+
+    const EXAMPLE_INPUT_1: &'static str = indoc!{"
+        1abc2
+        pqr3stu8vwx
+        a1b2c3d4e5f
+        treb7uchet
+    "};
+    const EXAMPLE_INPUT_2: &'static str = indoc!{"
+        two1nine
+        eightwothree
+        abcone2threexyz
+        xtwone3four
+        4nineeightseven2
+        zoneight234
+        7pqrstsixteen
+    "};
+
+    #[test]
+    fn test_solve_1() {
+        assert_eq!(
+            solve_1(EXAMPLE_INPUT_1),
+            "142"
+        )
+    }
+
+    #[test]
+    fn test_solve_2() {
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT_2),
+            "281"
+        )
+    }
 }

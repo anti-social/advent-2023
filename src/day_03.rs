@@ -38,18 +38,18 @@ pub fn solve_1(input: &str) -> String {
     for c in input.chars() {
         match state {
             State::Idle => {
-                if c.is_digit(10) {
+                if let Some(d) = c.to_digit(10) {
                     state = State::Num {
                         loc: Location { row, col },
-                        num: c as u32 - '0' as u32,
+                        num: d,
                     }
                 } else if c != '.' && c != '\n' {
                     symbols.insert(Location { row, col });
                 }
             }
             State::Num { loc, ref mut num } => {
-                if c.is_digit(10) {
-                    *num = *num * 10 + (c as u32 - '0' as u32);
+                if let Some(d) = c.to_digit(10) {
+                    *num = *num * 10 + d;
                 } else {
                     parts.push(
                         Part {
@@ -72,8 +72,6 @@ pub fn solve_1(input: &str) -> String {
             continue;
         }
     }
-    println!("Parts: {:?}", parts);
-    println!("Symbols: {:?}", symbols);
 
     let mut parts_sum = 0;
     for part in parts {
@@ -125,18 +123,18 @@ pub fn solve_2(input: &str) -> String {
     for c in input.chars() {
         match state {
             State::Idle => {
-                if c.is_digit(10) {
+                if let Some(d) = c.to_digit(10) {
                     state = State::Num {
                         loc: Location::new(row, col),
-                        num: c as u32 - '0' as u32,
+                        num: d,
                     }
                 } else if c == '*' {
                     gears.push(Location::new(row, col));
                 }
             }
             State::Num { loc, ref mut num } => {
-                if c.is_digit(10) {
-                    *num = *num * 10 + (c as u32 - '0' as u32);
+                if let Some(d) = c.to_digit(10) {
+                    *num = *num * 10 + d;
                 } else {
                     for part_col in loc.col..col {
                         part_locs.insert(
@@ -158,8 +156,6 @@ pub fn solve_2(input: &str) -> String {
             continue;
         }
     }
-    println!("Parts: {:?}", part_locs);
-    println!("Gears: {:?}", gears);
 
     let mut sum = 0;
     for gear_loc in gears {
