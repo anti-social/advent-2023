@@ -585,10 +585,6 @@ video {
   display: block;
 }
 
-.flex {
-  display: flex;
-}
-
 .inline-flex {
   display: inline-flex;
 }
@@ -601,16 +597,8 @@ video {
   display: none;
 }
 
-.w-1\/2 {
-  width: 50%;
-}
-
 .w-full {
   width: 100%;
-}
-
-.flex-1 {
-  flex: 1 1 0%;
 }
 
 .cursor-pointer {
@@ -666,11 +654,6 @@ video {
   border-color: rgb(29 78 216 / var(--tw-border-opacity));
 }
 
-.border-gray-300 {
-  --tw-border-opacity: 1;
-  border-color: rgb(209 213 219 / var(--tw-border-opacity));
-}
-
 .bg-blue-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(37 99 235 / var(--tw-bg-opacity));
@@ -683,10 +666,6 @@ video {
 
 .p-2 {
   padding: 0.5rem;
-}
-
-.p-2\.5 {
-  padding: 0.625rem;
 }
 
 .px-4 {
@@ -712,19 +691,9 @@ video {
   text-align: center;
 }
 
-.text-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
-}
-
-.text-gray-900 {
-  --tw-text-opacity: 1;
-  color: rgb(17 24 39 / var(--tw-text-opacity));
 }
 
 .text-white {
@@ -746,16 +715,6 @@ video {
   color: rgb(75 85 99 / var(--tw-text-opacity));
 }
 
-.focus\:border-blue-500:focus {
-  --tw-border-opacity: 1;
-  border-color: rgb(59 130 246 / var(--tw-border-opacity));
-}
-
-.focus\:ring-blue-500:focus {
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(59 130 246 / var(--tw-ring-opacity));
-}
-
 .peer:checked ~ .peer-checked\:border-blue-600 {
   --tw-border-opacity: 1;
   border-color: rgb(37 99 235 / var(--tw-border-opacity));
@@ -764,41 +723,4 @@ video {
 .peer:checked ~ .peer-checked\:text-blue-600 {
   --tw-text-opacity: 1;
   color: rgb(37 99 235 / var(--tw-text-opacity));
-}
-
-@media (prefers-color-scheme: dark) {
-  .dark\:border-gray-600 {
-    --tw-border-opacity: 1;
-    border-color: rgb(75 85 99 / var(--tw-border-opacity));
-  }
-
-  .dark\:bg-gray-700 {
-    --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity));
-  }
-
-  .dark\:text-white {
-    --tw-text-opacity: 1;
-    color: rgb(255 255 255 / var(--tw-text-opacity));
-  }
-
-  .dark\:placeholder-gray-400::-moz-placeholder {
-    --tw-placeholder-opacity: 1;
-    color: rgb(156 163 175 / var(--tw-placeholder-opacity));
-  }
-
-  .dark\:placeholder-gray-400::placeholder {
-    --tw-placeholder-opacity: 1;
-    color: rgb(156 163 175 / var(--tw-placeholder-opacity));
-  }
-
-  .dark\:focus\:border-blue-500:focus {
-    --tw-border-opacity: 1;
-    border-color: rgb(59 130 246 / var(--tw-border-opacity));
-  }
-
-  .dark\:focus\:ring-blue-500:focus {
-    --tw-ring-opacity: 1;
-    --tw-ring-color: rgb(59 130 246 / var(--tw-ring-opacity));
-  }
 }
