@@ -148,7 +148,7 @@ fn Solver(cx: Scope) -> Element {
                     div {
                         button {
                             class: "inline-flex justify-center px-4 py-1 text-white bg-blue-600 border border-blue-700 rounded-md",
-                            "Solve"
+                            "Solve it"
                         }
                         span { class: "pl-2", "Result is: " }
                         span { answer.as_ref().map(|a| rsx!{ "{a}" }) }

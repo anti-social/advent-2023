@@ -12,7 +12,8 @@ pub fn solve_2(input: &str) -> String {
 mod tests {
     use super::*;
 
-    const EXAMPLE_INPUT: &'static str = r#""#;
+    const EXAMPLE_INPUT: &'static str = indoc!{"
+    "};
 
     // #[test]
     // fn test_solve_1() {
