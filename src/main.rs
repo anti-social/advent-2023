@@ -12,14 +12,19 @@ macro_rules! days {
 
             const DAYS: &'static [Day] = &[
                 $(
-                    Day::new($day, include_str!(concat!("day_", stringify!($day), ".rs")), [<day_ $day>]::solve_1, [<day_ $day>]::solve_2),
+                    Day::new(
+                        $day,
+                        include_str!(concat!("day_", stringify!($day), ".rs")),
+                        [<day_ $day>]::solve_1,
+                        [<day_ $day>]::solve_2,
+                    ),
                 )*
             ];
         }
     };
 }
 
-days!(01, 02, 03, 04);
+days!(01, 02, 03, 04, 05);
 
 struct Day {
     pub ord: u32,
@@ -124,7 +129,6 @@ fn Solver(cx: Scope) -> Element {
                                 r#for: "task-{t}",
                                 class: "p-2 border rounded-lg cursor-pointer hover:text-gray-600 hover:bg-gray-100 peer-checked:border-blue-600 peer-checked:text-blue-600",
                                 onclick: |event| {
-                                    log::info!("Setting new source");
                                     src.set(p.code);
                                     event.stop_propagation();
                                 },
@@ -183,13 +187,11 @@ fn Source(cx: Scope, code: String) -> Element {
         to_owned![create_eval];
         let hl_code = hl_code.clone();
         async move {
-            log::info!("Evaluating JS code...");
+            // log::info!("Evaluating JS code...");
             let eval = create_eval(
                 r#"
                 let code = await dioxus.recv();
-                console.log(code);
                 let hlCode = hljs.highlight(code, {"language": "rust"}).value;
-                console.log(hlCode);
                 dioxus.send(hlCode);
                 "#,
             )
