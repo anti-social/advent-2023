@@ -1,7 +1,5 @@
 use std::collections::HashSet;
 
-pub const SRC: &'static str = include_str!("day_04.rs");
-
 #[derive(Debug)]
 struct Card {
     winning_nums: u32,

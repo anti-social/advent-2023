@@ -1,5 +1,3 @@
-pub const SRC: &'static str = include_str!("day_01.rs");
-
 pub fn solve_1(input: &str) -> String {
     let mut res = 0;
     for row in input.lines() {

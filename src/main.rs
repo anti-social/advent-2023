@@ -3,17 +3,23 @@ use std::collections::BTreeMap;
 
 use dioxus::prelude::*;
 
-mod day_01;
-mod day_02;
-mod day_03;
-mod day_04;
+use paste::paste;
 
-const DAYS: &'static [Day] = &[
-    Day::new(1, day_01::SRC, day_01::solve_1, day_01::solve_2),
-    Day::new(2, day_02::SRC, day_02::solve_1, day_02::solve_2),
-    Day::new(3, day_03::SRC, day_03::solve_1, day_03::solve_2),
-    Day::new(4, day_04::SRC, day_04::solve_1, day_04::solve_2),
-];
+macro_rules! days {
+    ($($day:expr),*) => {
+        paste! {
+            $(mod [<day_ $day>];)*
+
+            const DAYS: &'static [Day] = &[
+                $(
+                    Day::new($day, include_str!(concat!("day_", stringify!($day), ".rs")), [<day_ $day>]::solve_1, [<day_ $day>]::solve_2),
+                )*
+            ];
+        }
+    };
+}
+
+days!(01, 02, 03, 04);
 
 struct Day {
     pub ord: u32,

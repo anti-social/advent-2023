@@ -1,7 +1,5 @@
 use std::str::FromStr;
 
-pub const SRC: &'static str = include_str!("day_02.rs");
-
 const RED_CUBES: u32 = 12;
 const GREEN_CUBES: u32 = 13;
 const BLUE_CUBES: u32 = 14;

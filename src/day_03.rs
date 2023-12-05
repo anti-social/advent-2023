@@ -1,7 +1,5 @@
 use std::collections::{HashSet, HashMap};
 
-pub const SRC: &'static str = include_str!("day_03.rs");
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 struct Location {
     pub row: u32,
