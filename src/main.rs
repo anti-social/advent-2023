@@ -69,7 +69,7 @@ fn main() {
 fn App(cx: Scope) -> Element {
     cx.render(rsx! {
         div {
-            class: "container mx-auto",
+            class: "flex flex-col flex-1 px-12",
             div {
                 h1 {
                     class: "text-xl text-center",
@@ -93,7 +93,7 @@ fn Solver(cx: Scope) -> Element {
     let cur_puzzle_id = if let Ok(Some(cur_puzzle)) = hash.as_ref().map(|h| h.strip_prefix("#")) {
         cur_puzzle
     } else {
-        ""
+        "01-1"
     };
     let puzzles = DAYS.iter()
         .flat_map(|d| {
@@ -158,7 +158,7 @@ fn Solver(cx: Scope) -> Element {
                 }
             }
             div {
-                class: "grid grid-rows-1 grid-cols-2 gap-2",
+                class: "columns-2 gap-2",
                 div {
                     class: "w-full",
                     div {
