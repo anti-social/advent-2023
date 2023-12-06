@@ -5,6 +5,10 @@ module.exports = {
     "./src/**/*.{rs,html,css}",
     "./dist/**/*.html",
   ],
+  safelist: [
+    "hljs-ln-numbers",
+    "hljs-ln-code",
+  ],
   theme: {
     container: {
       center: true,

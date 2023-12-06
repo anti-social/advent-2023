@@ -572,6 +572,15 @@ video {
   }
 }
 
+td.hljs-ln-numbers {
+  border-right-width: 1px !important;
+  padding-right: 0.5rem !important;
+}
+
+td.hljs-ln-code {
+  padding-left: 0.5rem !important;
+}
+
 .static {
   position: static;
 }

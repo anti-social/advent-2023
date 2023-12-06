@@ -178,6 +178,7 @@ fn Solver(cx: Scope) -> Element {
                     }
                 }
                 div {
+                    id: "code",
                     class: "border p-2 w-full",
                     Source {
                         code: src.to_string()
@@ -205,7 +206,8 @@ fn Source(cx: Scope, code: String) -> Element {
                 r#"
                 let code = await dioxus.recv();
                 let hlCode = hljs.highlight(code, {"language": "rust"}).value;
-                dioxus.send(hlCode);
+                let hlCodeWithLines = hljs.lineNumbersValue(hlCode, {});
+                dioxus.send(hlCodeWithLines);
                 "#,
             )
             .unwrap();
