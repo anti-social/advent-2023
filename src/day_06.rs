@@ -95,8 +95,11 @@ fn solve_quadratic(b: f64, c: f64) -> (Option<f64>, Option<f64>) {
 mod tests {
     use indoc::indoc;
     use test_log::test;
+    use crate::util;
+
     use super::*;
 
+    const DAY: u8 = 6;
     const EXAMPLE_INPUT: &'static str = indoc!{"
         Time:      7  15   30
         Distance:  9  40  200
@@ -111,10 +114,36 @@ mod tests {
     }
 
     #[test]
+    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
+        let input = if let Some(input) = util::fetch_user_input(DAY)? {
+            input
+        } else {
+            return Ok(());
+        };
+
+        log::debug!("{input}");
+        log::warn!("{}", solve_1(&input));
+        Ok(())
+    }
+
+    #[test]
     fn test_solve_2() {
         assert_eq!(
             solve_2(EXAMPLE_INPUT),
             "71503".to_string()
         );
+    }
+
+    #[test]
+    fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
+        let input = if let Some(input) = util::fetch_user_input(DAY)? {
+            input
+        } else {
+            return Ok(());
+        };
+
+        log::debug!("{input}");
+        log::warn!("{}", solve_2(&input));
+        Ok(())
     }
 }

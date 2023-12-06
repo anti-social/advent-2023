@@ -7,6 +7,8 @@ use paste::paste;
 
 use web_sys;
 
+mod util;
+
 macro_rules! days {
     ($($day:expr),*) => {
         paste! {
@@ -26,7 +28,7 @@ macro_rules! days {
     };
 }
 
-days!(01, 02, 03, 04, 05, 06);
+days!(01, 02, 03, 04, 05, 06, 07);
 
 struct Day {
     pub ord: u32,
