@@ -84,8 +84,10 @@ fn App(cx: Scope) -> Element {
 fn Solver(cx: Scope) -> Element {
     let src = use_state(cx, || DAYS.last().unwrap().code);
     let answer = use_state(cx, || None);
+    let duration = use_state(cx, || None);
 
     let window = web_sys::window().expect("Window object");
+    let perf = window.performance().expect("Performance");
     let location = window.location();
     let hash = location.hash();
     let cur_puzzle_id = if let Ok(Some(cur_puzzle)) = hash.as_ref().map(|h| h.strip_prefix("#")) {
@@ -106,12 +108,16 @@ fn Solver(cx: Scope) -> Element {
         form {
             onsubmit: move |event| {
                 let input = &event.data.values["input"][0];
-                let res = if let Some(puzzle) = &puzzles.get(event.data.values["task"][0].as_str()) {
-                    (puzzle.solve)(input)
+                let (res, dur) = if let Some(puzzle) = &puzzles.get(event.data.values["task"][0].as_str()) {
+                    let start = perf.now();
+                    let res = (puzzle.solve)(input);
+                    let end = perf.now();
+                    (res, Some(end - start))
                 } else {
-                    "Invalid task".to_string()
+                    ("Invalid task".to_string(), None)
                 };
                 answer.set(Some(res));
+                duration.set(dur);
             },
             div {
                 class: "py-2",
@@ -169,12 +175,24 @@ fn Solver(cx: Scope) -> Element {
                         }
                     }
                     div {
-                        button {
-                            class: "inline-flex justify-center px-4 py-1 text-white bg-blue-600 border border-blue-700 rounded-md",
-                            "Solve it"
+                        class: "grid grid-cols-4",
+                        div {
+                            button {
+                                class: "inline-flex justify-center px-4 py-1 text-white bg-blue-600 border border-blue-700 rounded-md",
+                                "Solve it"
+                            }
                         }
-                        span { class: "pl-2", "Result is: " }
-                        span { answer.as_ref().map(|a| rsx!{ "{a}" }) }
+                        div {
+                            class: "col-span-3 py-1",
+                            p {
+                                span { class: "pl-2", "Result is: " }
+                                span { answer.as_ref().map(|a| rsx!{ "{a}" }) }
+                            }
+                            p {
+                                span { class: "pl-2", "Time is: " }
+                                span { duration.as_ref().map(|d| rsx!{ "{d}ms" }) }
+                            }
+                        }
                     }
                 }
                 div {
