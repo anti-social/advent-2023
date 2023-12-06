@@ -168,7 +168,7 @@ fn Solver(cx: Scope) -> Element {
                         }
                         textarea {
                             name: "input",
-                            placeholder: "Paster your input data",
+                            placeholder: "Paste your input data",
                             class: "block p-2 w-full resize border bg-gray-50",
                             rows: "20",
                             // cols: "80"
@@ -185,11 +185,11 @@ fn Solver(cx: Scope) -> Element {
                         div {
                             class: "col-span-3 py-1",
                             p {
-                                span { class: "pl-2", "Result is: " }
+                                span { class: "pl-2", "Result: " }
                                 span { answer.as_ref().map(|a| rsx!{ "{a}" }) }
                             }
                             p {
-                                span { class: "pl-2", "Time is: " }
+                                span { class: "pl-2", "Duration: " }
                                 span { duration.as_ref().map(|d| rsx!{ "{d}ms" }) }
                             }
                         }
