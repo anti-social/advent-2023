@@ -24,7 +24,7 @@ macro_rules! days {
     };
 }
 
-days!(01, 02, 03, 04, 05);
+days!(01, 02, 03, 04, 05, 06);
 
 struct Day {
     pub ord: u32,
