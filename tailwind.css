@@ -572,8 +572,21 @@ video {
   }
 }
 
+td.hljs-ln-numbers {
+  border-right-width: 1px !important;
+  padding-right: 0.5rem !important;
+}
+
+td.hljs-ln-code {
+  padding-left: 0.5rem !important;
+}
+
 .static {
   position: static;
+}
+
+.col-span-3 {
+  grid-column: span 3 / span 3;
 }
 
 .mx-auto {
@@ -619,6 +632,10 @@ video {
 
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .grid-rows-1 {
