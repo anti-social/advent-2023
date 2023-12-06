@@ -5,6 +5,8 @@ use dioxus::prelude::*;
 
 use paste::paste;
 
+use web_sys;
+
 macro_rules! days {
     ($($day:expr),*) => {
         paste! {
@@ -83,6 +85,14 @@ fn Solver(cx: Scope) -> Element {
     let src = use_state(cx, || DAYS.last().unwrap().code);
     let answer = use_state(cx, || None);
 
+    let window = web_sys::window().expect("Window object");
+    let location = window.location();
+    let hash = location.hash();
+    let cur_puzzle_id = if let Ok(Some(cur_puzzle)) = hash.as_ref().map(|h| h.strip_prefix("#")) {
+        cur_puzzle
+    } else {
+        ""
+    };
     let puzzles = DAYS.iter()
         .flat_map(|d| {
             [
@@ -91,9 +101,6 @@ fn Solver(cx: Scope) -> Element {
             ]
         })
         .collect::<BTreeMap<_, _>>();
-
-    let tasks = vec!("01-1", "01-2", "02-1", "02-2", "03-1", "03-2", "04-1", "04-2");
-    let tasks_len = tasks.len();
 
     cx.render(rsx!{
         form {
@@ -114,25 +121,31 @@ fn Solver(cx: Scope) -> Element {
                 }
                 div {
                     class: "grid grid-flow-col auto-cols-min grid-rows-2 gap-2",
-                    puzzles.iter().enumerate().map(|(i, (t, p))| rsx!{
-                        div {
-                            class: "py-2",
-                            input {
-                                id: "task-{t}",
-                                r#type: "radio",
-                                name: "task",
-                                value: "{t}",
-                                checked: i + 1 == tasks_len,
-                                class: "hidden peer",
-                            }
-                            label {
-                                r#for: "task-{t}",
-                                class: "p-2 border rounded-lg cursor-pointer hover:text-gray-600 hover:bg-gray-100 peer-checked:border-blue-600 peer-checked:text-blue-600",
-                                onclick: |event| {
-                                    src.set(p.code);
-                                    event.stop_propagation();
-                                },
-                                "{t}"
+                    puzzles.iter().map(|(pid, p)| {
+                        let code = p.code;
+                        let location = location.clone();
+                        let new_hash = format!("#{pid}");
+                        rsx!{
+                            div {
+                                class: "py-2",
+                                input {
+                                    id: "task-{pid}",
+                                    r#type: "radio",
+                                    name: "task",
+                                    value: "{pid}",
+                                    checked: pid == cur_puzzle_id,
+                                    class: "hidden peer",
+                                }
+                                label {
+                                    r#for: "task-{pid}",
+                                    class: "p-2 border rounded-lg cursor-pointer hover:text-gray-600 hover:bg-gray-100 peer-checked:border-blue-600 peer-checked:text-blue-600",
+                                    onclick: move |event| {
+                                        src.set(code);
+                                        location.set_hash(&new_hash).ok();
+                                        event.stop_propagation();
+                                    },
+                                    "{pid}"
+                                }
                             }
                         }
                     })
