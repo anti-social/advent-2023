@@ -99,7 +99,6 @@ mod tests {
 
     use super::*;
 
-    const DAY: u8 = 6;
     const EXAMPLE_INPUT: &'static str = indoc!{"
         Time:      7  15   30
         Distance:  9  40  200
@@ -115,7 +114,8 @@ mod tests {
 
     #[test]
     fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
-        let input = if let Some(input) = util::fetch_user_input(DAY)? {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
             input
         } else {
             return Ok(());
@@ -136,7 +136,8 @@ mod tests {
 
     #[test]
     fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
-        let input = if let Some(input) = util::fetch_user_input(DAY)? {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
             input
         } else {
             return Ok(());
