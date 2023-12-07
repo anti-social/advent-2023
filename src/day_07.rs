@@ -117,21 +117,14 @@ fn parse_cards(s: &str, card_ords: &HashMap<char, u8>) -> Cards {
 }
 
 fn promote_jokers(cards: &Cards) -> Cards {
-    let mut cards_with_count = HashMap::new();
-    for card in cards {
-        cards_with_count.entry(card)
-            .and_modify(|count| *count += 1)
-            .or_insert(1);
-    }
-    if let None = cards_with_count.remove(&JOKER) {
+    let mut card_counts = cards.iter().collect::<Counter<_>>();
+    if let None = card_counts.remove(&JOKER) {
         return *cards;
     };
 
-    let top_card = cards_with_count.iter()
-        .map(|e| (e.0, e.1))
-        .max_by_key(|(_, n)| *n)
-        .map(|(c, _)| c);
-    if let Some(top_card) = top_card {
+    let top_cards = card_counts.k_most_common_ordered(1);
+    let top_card = top_cards.first();
+    if let Some((top_card, _)) = top_card {
         cards.map(|c| if c == JOKER { **top_card } else { c })
     } else {
         *cards
