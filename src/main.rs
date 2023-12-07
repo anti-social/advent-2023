@@ -7,6 +7,7 @@ use paste::paste;
 
 use web_sys;
 
+#[cfg(test)]
 mod util;
 
 macro_rules! days {
