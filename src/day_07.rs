@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use counter::Counter;
+
 const CARDS: &'static [char] = &[
     '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'
 ];
@@ -10,7 +12,7 @@ const CARDS_WITH_JOKER: &'static [char] = &[
 
 type Cards = [u8; 5];
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum HandType {
     HighCard,
     OnePair,
@@ -25,21 +27,12 @@ impl HandType {
     fn from_cards(cards: &Cards) -> Self {
         use HandType::*;
 
-        let mut card_counts = HashMap::new();
-        for card in cards {
-            card_counts.entry(card)
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
-        }
-        let mut cards_count = card_counts.iter()
-            .map(|e| (e.0, e.1))
-            .collect::<Vec<_>>();
-        cards_count.sort_by(|a, b| b.1.cmp(a.1));
-        match cards_count.len() {
+        let card_counts = cards.iter().collect::<Counter<_>>().most_common();
+        match card_counts.len() {
             1 => FiveOfAKind,
-            2 if *cards_count[0].1 == 4 => FourOfAKind,
+            2 if card_counts[0].1 == 4 => FourOfAKind,
             2 => FullHouse,
-            3 if *cards_count[0].1 == 3 => ThreeOfAKind,
+            3 if card_counts[0].1 == 3 => ThreeOfAKind,
             3 => TwoPair,
             4 => OnePair,
             5 => HighCard,
@@ -48,7 +41,7 @@ impl HandType {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Hand {
     pub hand_type: HandType,
     pub cards: Cards,
