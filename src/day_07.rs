@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::collections::HashMap;
 
 const CARDS: &'static [char] = &[
@@ -11,7 +10,7 @@ const CARDS_WITH_JOKER: &'static [char] = &[
 
 type Cards = [u8; 5];
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum HandType {
     HighCard,
     OnePair,
@@ -49,73 +48,47 @@ impl HandType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct Hand {
-    pub cards: Cards,
     pub hand_type: HandType,
-    pub bid: u64,
-}
-
-impl Ord for Hand {
-    fn cmp(&self, other: &Hand) -> Ordering {
-        match self.hand_type.cmp(&other.hand_type) {
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Less => Ordering::Less,
-            Ordering::Equal => {
-                for (card, other_card) in self.cards.iter().zip(other.cards.iter()) {
-                    if card > other_card {
-                        return Ordering::Greater;
-                    } else if card < other_card {
-                        return Ordering::Less;
-                    }
-                }
-                Ordering::Equal
-            }
-        }
-    }
-}
-
-impl PartialOrd<Hand> for Hand {
-    fn partial_cmp(&self, other: &Hand) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+    pub cards: Cards,
 }
 
 pub fn solve_1(input: &str) -> String {
     let card_ordinals = build_card_ordinals(CARDS);
 
     let lines = input.lines();
-    let mut hands = vec!();
+    let mut hands_with_bids = vec!();
     for line in lines {
         if let Some((cards, bid)) = parse_cards_and_bid(line, &card_ordinals) {
             let hand_type = HandType::from_cards(&cards);
-            hands.push(
-                Hand { cards, hand_type, bid, }
+            hands_with_bids.push(
+                (Hand { cards, hand_type }, bid)
             );
         }
     }
-    hands.sort();
+    hands_with_bids.sort_by_key(|(h, _)| *h);
 
-    calc_total_score(&hands).to_string()
+    calc_total_score(&hands_with_bids).to_string()
 }
 
 pub fn solve_2(input: &str) -> String {
     let card_ordinals = build_card_ordinals(CARDS_WITH_JOKER);
 
     let lines = input.lines();
-    let mut hands = vec!();
+    let mut hands_with_bids = vec!();
     for line in lines {
         if let Some((cards, bid)) = parse_cards_and_bid(line, &card_ordinals) {
             let upgraded_cards = promote_jokers(&cards);
             let hand_type = HandType::from_cards(&upgraded_cards);
-            hands.push(
-                Hand { cards, hand_type, bid }
+            hands_with_bids.push(
+                (Hand { cards, hand_type }, bid)
             );
         }
     }
-    hands.sort();
+    hands_with_bids.sort_by_key(|(h, _)| *h);
 
-    calc_total_score(&hands).to_string()
+    calc_total_score(&hands_with_bids).to_string()
 }
 
 fn build_card_ordinals(cards_order: &[char]) -> HashMap<char, u8> {
@@ -172,10 +145,10 @@ fn promote_jokers(cards: &Cards) -> Cards {
     }
 }
 
-fn calc_total_score(hands: &Vec<Hand>) -> u64 {
+fn calc_total_score(hands: &Vec<(Hand, u64)>) -> u64 {
     let mut res = 0;
-    for (score, hand) in hands.iter().enumerate() {
-        res += hand.bid * (score as u64 + 1);
+    for (score, (_, bid)) in hands.iter().enumerate() {
+        res += bid * (score as u64 + 1);
     }
     res
 }
