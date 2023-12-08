@@ -6,6 +6,23 @@ pub fn solve_2(input: &str) -> String {
     todo!()
 }
 
+fn parse(input: &str) -> () {
+    let mut lines = input.lines();
+    for line in lines {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if let Some((left, right)) = line.split_once('=') {
+            let left = left.trim();
+            let right = right.trim();
+        }
+    }
+
+    todo!()
+}
+
+
 #[cfg(test)]
 mod tests {
     use indoc::indoc;
