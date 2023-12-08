@@ -1,7 +1,7 @@
 .PHONY: run
 run:
-	RUST_LOG=warn cargo test day_0$(day) -- --nocapture
+	RUST_LOG=warn cargo test day_0$(day) --release -- --nocapture
 
 .PHONY: run
 run-debug:
-	RUST_LOG=debug cargo test day_0$(day) --jobs 1 -- --nocapture
+	RUST_LOG=debug cargo test day_0$(day) --release -- --nocapture
