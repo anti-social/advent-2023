@@ -15,7 +15,7 @@ pub fn solve_2(input: &str) -> String {
     let steps = network.keys()
         .filter(|n| n.ends_with("A"))
         .map(|n| find_num_steps(n, navigation, &network, |n| n.ends_with("Z")))
-        .fold(1, |acc, n| lcm(acc, n));
+        .fold(1, lcm);
 
     steps.to_string()
 }
