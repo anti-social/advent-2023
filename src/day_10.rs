@@ -41,37 +41,37 @@ mod tests {
         );
     }
 
-    #[test]
-    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
-        let day = util::day_from_filename(file!())?;
-        let input = if let Some(input) = util::fetch_user_input(day)? {
-            input
-        } else {
-            return Ok(());
-        };
+    // #[test]
+    // fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
+    //     let day = util::day_from_filename(file!())?;
+    //     let input = if let Some(input) = util::fetch_user_input(day)? {
+    //         input
+    //     } else {
+    //         return Ok(());
+    //     };
 
-        log::warn!("{}", solve_1(&input));
-        Ok(())
-    }
+    //     log::warn!("{}", solve_1(&input));
+    //     Ok(())
+    // }
 
-    #[test]
-    fn test_solve_2() {
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT),
-            "".to_string()
-        );
-    }
+    // #[test]
+    // fn test_solve_2() {
+    //     assert_eq!(
+    //         solve_2(EXAMPLE_INPUT),
+    //         "".to_string()
+    //     );
+    // }
 
-    #[test]
-    fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
-        let day = util::day_from_filename(file!())?;
-        let input = if let Some(input) = util::fetch_user_input(day)? {
-            input
-        } else {
-            return Ok(());
-        };
+    // #[test]
+    // fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
+    //     let day = util::day_from_filename(file!())?;
+    //     let input = if let Some(input) = util::fetch_user_input(day)? {
+    //         input
+    //     } else {
+    //         return Ok(());
+    //     };
 
-        log::warn!("{}", solve_2(&input));
-        Ok(())
-    }
+    //     log::warn!("{}", solve_2(&input));
+    //     Ok(())
+    // }
 }
