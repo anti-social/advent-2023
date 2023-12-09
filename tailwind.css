@@ -551,6 +551,10 @@ td.hljs-ln-code {
   grid-column: span 3 / span 3;
 }
 
+.col-auto {
+  grid-column: auto;
+}
+
 .block {
   display: block;
 }
@@ -579,6 +583,10 @@ td.hljs-ln-code {
   flex: 1 1 0%;
 }
 
+.flex-initial {
+  flex: 0 1 auto;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -592,16 +600,49 @@ td.hljs-ln-code {
        columns: 2;
 }
 
+.columns-1 {
+  -moz-columns: 1;
+       columns: 1;
+}
+
 .auto-cols-min {
   grid-auto-columns: min-content;
+}
+
+.auto-cols-auto {
+  grid-auto-columns: auto;
+}
+
+.grid-flow-row {
+  grid-auto-flow: row;
 }
 
 .grid-flow-col {
   grid-auto-flow: column;
 }
 
+.grid-flow-col-dense {
+  grid-auto-flow: column dense;
+}
+
 .grid-cols-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-cols-\[repeat\(auto-fill_minmax\(min-content\2c _1fr\)\)\] {
+  grid-template-columns: repeat(auto-fill minmax(min-content, 1fr));
+}
+
+.grid-cols-\[repeat\(auto-fill\2c _minmax\(min-content\2c _1fr\)\)\] {
+  grid-template-columns: repeat(auto-fill, minmax(min-content, 1fr));
+}
+
+.grid-cols-\[repeat\(auto-fill\2c _minmax\(50px\2c _1fr\)\)\] {
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+}
+
+.grid-cols-\[repeat\(auto-fill\2c _minmax\(40px\2c _1fr\)\)\] {
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
 }
 
 .grid-rows-2 {
@@ -618,6 +659,18 @@ td.hljs-ln-code {
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+.gap-1 {
+  gap: 0.25rem;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
 }
 
 .rounded-lg {
@@ -651,11 +704,6 @@ td.hljs-ln-code {
   padding: 0.5rem;
 }
 
-.px-16 {
-  padding-left: 4rem;
-  padding-right: 4rem;
-}
-
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -671,9 +719,19 @@ td.hljs-ln-code {
   padding-bottom: 0.5rem;
 }
 
-.px-12 {
-  padding-left: 3rem;
-  padding-right: 3rem;
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.py-0 {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.py-0\.5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
 }
 
 .pl-2 {
@@ -716,4 +774,28 @@ td.hljs-ln-code {
 .peer:checked ~ .peer-checked\:text-blue-600 {
   --tw-text-opacity: 1;
   color: rgb(37 99 235 / var(--tw-text-opacity));
+}
+
+@media (min-width: 640px) {
+  .sm\:px-1 {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .sm\:px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .xl\:columns-2 {
+    -moz-columns: 2;
+         columns: 2;
+  }
+
+  .xl\:px-12 {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
 }
