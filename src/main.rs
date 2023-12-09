@@ -70,9 +70,9 @@ fn main() {
 
 // create a component that renders a div with the text "Hello, world!"
 fn App(cx: Scope) -> Element {
-    cx.render(rsx! {
+    render! {
         div {
-            class: "flex flex-col flex-1 px-12",
+            class: "flex flex-col flex-1 px-2 xl:px-12",
             div {
                 h1 {
                     class: "text-xl text-center",
@@ -81,7 +81,7 @@ fn App(cx: Scope) -> Element {
             }
             Solver {}
         }
-    })
+    }
 }
 
 fn Solver(cx: Scope) -> Element {
@@ -94,9 +94,9 @@ fn Solver(cx: Scope) -> Element {
     let location = window.location();
     let hash = location.hash();
     let cur_puzzle_id = if let Ok(Some(cur_puzzle)) = hash.as_ref().map(|h| h.strip_prefix("#")) {
-        cur_puzzle
+        cur_puzzle.to_string()
     } else {
-        "01-1"
+        "01-1".to_string()
     };
     let puzzles = DAYS.iter()
         .flat_map(|d| {
@@ -107,7 +107,7 @@ fn Solver(cx: Scope) -> Element {
         })
         .collect::<BTreeMap<_, _>>();
 
-    cx.render(rsx!{
+    render!{
         form {
             onsubmit: move |event| {
                 let input = &event.data.values["input"][0];
@@ -122,46 +122,12 @@ fn Solver(cx: Scope) -> Element {
                 answer.set(Some(res));
                 duration.set(dur);
             },
-            div {
-                class: "py-2",
-                legend {
-                    class: "p-2",
-                    "Choose task"
-                }
-                div {
-                    class: "grid grid-flow-col auto-cols-min grid-rows-2 gap-2",
-                    puzzles.iter().map(|(pid, p)| {
-                        let code = p.code;
-                        let location = location.clone();
-                        let new_hash = format!("#{pid}");
-                        rsx!{
-                            div {
-                                class: "py-2",
-                                input {
-                                    id: "task-{pid}",
-                                    r#type: "radio",
-                                    name: "task",
-                                    value: "{pid}",
-                                    checked: pid == cur_puzzle_id,
-                                    class: "hidden peer",
-                                }
-                                label {
-                                    r#for: "task-{pid}",
-                                    class: "p-2 border rounded-lg cursor-pointer hover:text-gray-600 hover:bg-gray-100 peer-checked:border-blue-600 peer-checked:text-blue-600",
-                                    onclick: move |event| {
-                                        src.set(code);
-                                        location.set_hash(&new_hash).ok();
-                                        event.stop_propagation();
-                                    },
-                                    "{pid}"
-                                }
-                            }
-                        }
-                    })
-                }
+            Puzzles {
+                cur_puzzle_id: cur_puzzle_id,
+                src: src,
             }
             div {
-                class: "columns-2 gap-2",
+                class: "columns-1 xl:columns-2 gap-2",
                 div {
                     class: "w-full",
                     div {
@@ -174,7 +140,6 @@ fn Solver(cx: Scope) -> Element {
                             placeholder: "Paste your input data",
                             class: "block p-2 w-full resize border bg-gray-50",
                             rows: "20",
-                            // cols: "80"
                         }
                     }
                     div {
@@ -200,14 +165,94 @@ fn Solver(cx: Scope) -> Element {
                 }
                 div {
                     id: "code",
-                    class: "border p-2 w-full",
+                    class: "border p-2 w-full overflow-x-auto",
                     Source {
                         code: src.to_string()
                     }
                 }
             }
         }
-    })
+    }
+}
+
+#[inline_props]
+fn Puzzles<'a>(
+    cx: Scope,
+    cur_puzzle_id: String,
+    src: &'a UseState<&'static str>,
+) -> Element {
+    render!{
+        div {
+            class: "py-2",
+            legend {
+                class: "p-2",
+                "Choose task"
+            }
+            div {
+                class: "grid auto-cols-min gap-2 grid-cols-[repeat(auto-fill,_minmax(50px,_1fr))]",
+                DAYS.iter().enumerate().map(|(day_ord, day)| {
+                    let day_ord = day_ord as u32 + 1;
+                    rsx!{
+                        div {
+                            PuzzleButton {
+                                day_ord: day_ord,
+                                puzzle_ord: 1,
+                                code: day.code,
+                                cur_puzzle_id: &cur_puzzle_id,
+                                src: src,
+                            }
+                            PuzzleButton {
+                                day_ord: day_ord,
+                                puzzle_ord: 2,
+                                code: day.code,
+                                cur_puzzle_id: &cur_puzzle_id,
+                                src: src,
+                            }
+                        }
+                    }
+                })
+            }
+        }
+    }
+}
+
+#[inline_props]
+fn PuzzleButton<'a>(
+    cx: Scope,
+    day_ord: u32,
+    puzzle_ord: u32,
+    code: &'static str,
+    cur_puzzle_id: &'a str,
+    src: &'a UseState<&'static str>,
+) -> Element {
+    let window = web_sys::window().expect("Window object");
+    let location = window.location();
+    let puzzle_id = format!("{day_ord:0>2}-{puzzle_ord}");
+    let new_hash = format!("#{puzzle_id}");
+
+    render!{
+        div {
+            class: "py-0.5 text-center",
+            input {
+                id: "puzzle-{puzzle_id}",
+                r#type: "radio",
+                name: "puzzle",
+                value: "{puzzle_id}",
+                checked: &puzzle_id == cur_puzzle_id,
+                class: "hidden peer",
+            }
+            label {
+                r#for: "puzzle-{puzzle_id}",
+                class: "block whitespace-nowrap p-2 border rounded-lg cursor-pointer hover:text-gray-600 hover:bg-gray-100 peer-checked:border-blue-600 peer-checked:text-blue-600",
+                onclick: move |event| {
+                    src.set(code);
+                    location.set_hash(&new_hash).ok();
+                    event.stop_propagation();
+                },
+                "{puzzle_id}"
+            }
+        }
+    }
 }
 
 #[inline_props]
@@ -240,12 +285,12 @@ fn Source(cx: Scope, code: String) -> Element {
         }
     });
     future.value();
-    cx.render(rsx!{
+    render!{
         pre {
             code {
                 class: "language-rust",
                 dangerous_inner_html: "{hl_code}"
             }
         }
-    })
+    }
 }
