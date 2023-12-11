@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use dioxus::prelude::*;
 
@@ -9,6 +10,8 @@ use web_sys;
 
 #[cfg(test)]
 mod util;
+
+pub type PuzzleResult = anyhow::Result<String>;
 
 macro_rules! days {
     ($($day:expr),*) => {
@@ -34,16 +37,16 @@ days!(01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11);
 struct Day {
     pub ord: u32,
     pub code: &'static str,
-    pub solve1: fn(&str) -> String,
-    pub solve2: fn(&str) -> String,
+    pub solve1: fn(&str) -> PuzzleResult,
+    pub solve2: fn(&str) -> PuzzleResult,
 }
 
 impl Day {
     const fn new(
         ord: u32,
         code: &'static str,
-        solve1: fn(&str) -> String,
-        solve2: fn(&str) -> String,
+        solve1: fn(&str) -> PuzzleResult,
+        solve2: fn(&str) -> PuzzleResult,
     ) -> Self {
         Self { ord, code, solve1, solve2 }
     }
@@ -73,7 +76,6 @@ fn App(cx: Scope) -> Element {
 fn Solver(cx: Scope) -> Element {
     let src = use_state(cx, || DAYS.last().unwrap().code);
     let answer = use_state(cx, || None);
-    let duration = use_state(cx, || None);
 
     let window = web_sys::window().expect("Window object");
     let perf = window.performance().expect("Performance");
@@ -98,16 +100,15 @@ fn Solver(cx: Scope) -> Element {
             onsubmit: move |event| {
                 let input = &event.data.values["input"][0];
                 let puzzle_id = event.data.values["puzzle"][0].as_str();
-                let (res, dur) = if let Some(solver) = &puzzle_solvers.get(puzzle_id) {
+                let res = if let Some(solver) = &puzzle_solvers.get(puzzle_id) {
                     let start = perf.now();
                     let res = solver(input);
                     let end = perf.now();
-                    (res, Some(end - start))
+                    res.map(|r| (r, end - start))
                 } else {
-                    ("Invalid task".to_string(), None)
+                    Err(anyhow::anyhow!("Invalid task"))
                 };
                 answer.set(Some(res));
-                duration.set(dur);
             },
             Puzzles {
                 cur_puzzle_id: cur_puzzle_id,
@@ -139,14 +140,7 @@ fn Solver(cx: Scope) -> Element {
                         }
                         div {
                             class: "col-span-3 py-1",
-                            p {
-                                span { class: "pl-2", "Result: " }
-                                span { answer.as_ref().map(|a| rsx!{ "{a}" }) }
-                            }
-                            p {
-                                span { class: "pl-2", "Duration: " }
-                                span { duration.as_ref().map(|d| rsx!{ "{d}ms" }) }
-                            }
+                            Answer { answer: answer.get() }
                         }
                     }
                 }
@@ -160,6 +154,33 @@ fn Solver(cx: Scope) -> Element {
             }
         }
     }
+}
+
+#[inline_props]
+fn Answer<'a>(
+    cx: Scope,
+    answer: &'a Option<anyhow::Result<(String, f64)>>
+) -> Element {
+    match answer {
+        Some(Ok((res, duration))) => render!{
+            p {
+                span { class: "pl-2", "Result: " }
+                span { "{res}" }
+            }
+            p {
+                span { class: "pl-2", "Duration: " }
+                span { "{duration}ms" }
+            }
+        },
+        Some(Err(e)) => render!{
+            p {
+                span { class: "pl-2", "Error: " }
+                span { "{e}" }
+            }
+        },
+        None => None,
+    }
+
 }
 
 #[inline_props]
@@ -254,20 +275,9 @@ fn Source(cx: Scope, code: String) -> Element {
         to_owned![create_eval];
         let hl_code = hl_code.clone();
         async move {
-            // log::info!("Evaluating JS code...");
-            let eval = create_eval(
-                r#"
-                let code = await dioxus.recv();
-                let hlCode = hljs.highlight(code, {"language": "rust"}).value;
-                let hlCodeWithLines = hljs.lineNumbersValue(hlCode, {});
-                dioxus.send(hlCodeWithLines);
-                "#,
-            )
-            .unwrap();
-            eval.send(serde_json::Value::String(code.to_string())).unwrap();
-
-            if let serde_json::Value::String(res) = eval.recv().await.unwrap() {
-                hl_code.set(res);
+            match highlight_code(&code, create_eval).await {
+                Ok(new_hl_code) => hl_code.set(new_hl_code),
+                Err(e) => log::error!("Error when highlighting code block: {e:?}"),
             }
         }
     });
@@ -279,5 +289,30 @@ fn Source(cx: Scope, code: String) -> Element {
                 dangerous_inner_html: "{hl_code}"
             }
         }
+    }
+}
+
+async fn highlight_code(
+    code: &str,
+    create_eval: Rc<dyn Fn(&str) -> Result<UseEval, EvalError>>
+) -> anyhow::Result<String> {
+    // log::info!("Evaluating JS code...");
+    let eval = create_eval(
+        r#"
+        let code = await dioxus.recv();
+        let hlCode = hljs.highlight(code, {"language": "rust"}).value;
+        let hlCodeWithLines = hljs.lineNumbersValue(hlCode, {});
+        dioxus.send(hlCodeWithLines);
+        "#,
+    ).map_err(|e| anyhow::anyhow!("Cannot create eval object: {e:?}"))?;
+    eval.send(serde_json::Value::String(code.to_string()))
+        .map_err(|e| anyhow::anyhow!("Error communicating with JS: {e:?}"))?;
+
+    let eval_res = eval.recv().await
+        .map_err(|e| anyhow::anyhow!("Error communicating with JS: {e:?}"))?;
+    if let serde_json::Value::String(hl_code) = eval_res {
+        Ok(hl_code)
+    } else {
+        anyhow::bail!("Expected string after JS evaluation")
     }
 }

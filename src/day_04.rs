@@ -1,57 +1,61 @@
 use std::collections::HashSet;
 
+use anyhow::Context;
+
 #[derive(Debug)]
 struct Card {
     winning_nums: u32,
     copies: u32,
 }
 
-pub fn solve_1(input: &str) -> String {
-    parse_cards(input).iter()
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
+    let res = parse_cards(input)?.iter()
         .filter(|c| c.winning_nums > 0)
         .fold(0, |acc, c| acc + (1 << (c.winning_nums - 1)))
-        .to_string()
+        .to_string();
+    Ok(res)
 }
 
-fn parse_cards(input: &str) -> Vec<Card> {
+fn parse_cards(input: &str) -> anyhow::Result<Vec<Card>> {
     input.lines()
-        .filter_map(parse_card)
+        .map(parse_card)
+        .filter_map(Result::transpose)
         .collect()
 }
 
-fn parse_card(line: &str) -> Option<Card> {
+fn parse_card(line: &str) -> anyhow::Result<Option<Card>> {
     if let Some((_, card_str)) = line.split_once(':') {
         let card_str = card_str.trim();
         if let Some((my_nums_str, total_nums_str)) = card_str.split_once('|') {
-            let my_nums = parse_nums(my_nums_str.trim());
-            let total_nums = parse_nums(total_nums_str.trim());
+            let my_nums = parse_nums(my_nums_str.trim())?;
+            let total_nums = parse_nums(total_nums_str.trim())?;
             let winning_nums = total_nums.intersection(&my_nums).count();
-            return Some(Card { winning_nums: winning_nums as u32, copies: 1 });
+            return Ok(Some(Card { winning_nums: winning_nums as u32, copies: 1 }));
         }
     }
-    None
+    Ok(None)
 }
 
-fn parse_nums(s: &str) -> HashSet<u32> {
+fn parse_nums(s: &str) -> anyhow::Result<HashSet<u32>> {
     s.split(' ')
         .filter(|v| !v.is_empty())
-        .map(|v| v.parse().unwrap())
+        .map(|v| v.parse().context("Expect integer"))
         .collect()
 }
 
-pub fn solve_2(input: &str) -> String {
-    let mut cards = parse_cards(input);
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
+    let mut cards = parse_cards(input)?;
     let mut sum = 0;
     for card_ix in 0..cards.len() {
         let (start_cards, rest_cards) = cards.split_at_mut(card_ix + 1);
-        let card = start_cards.last_mut().unwrap();
+        let card = start_cards.last_mut().context("Expect last card")?;
         for (_, following_card) in (0..card.winning_nums).zip(rest_cards) {
             following_card.copies += card.copies;
         }
         sum += card.copies;
     }
 
-    sum.to_string()
+    Ok(sum.to_string())
 }
 
 #[cfg(test)]
@@ -69,18 +73,20 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "13".to_string()
         );
+        Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT),
+            solve_2(EXAMPLE_INPUT)?,
             "30".to_string()
         );
+        Ok(())
     }
 }

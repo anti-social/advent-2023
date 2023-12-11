@@ -1,5 +1,7 @@
 use std::collections::{HashSet, HashMap};
 
+use crate::PuzzleResult;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 struct Location {
     pub row: u32,
@@ -27,7 +29,7 @@ enum State {
     }
 }
 
-pub fn solve_1(input: &str) -> String {
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let mut state = State::Idle;
     let mut row = 0;
     let mut col = 0;
@@ -109,10 +111,10 @@ pub fn solve_1(input: &str) -> String {
         }
     }
 
-    parts_sum.to_string()
+    Ok(parts_sum.to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> PuzzleResult {
     let mut state = State::Idle;
     let mut row = 0;
     let mut col = 0;
@@ -203,7 +205,7 @@ pub fn solve_2(input: &str) -> String {
         }
     }
 
-    sum.to_string()
+    Ok(sum.to_string())
 }
 
 #[cfg(test)]
@@ -225,18 +227,20 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "4361".to_string()
         );
+        Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT),
+            solve_2(EXAMPLE_INPUT)?,
             "467835".to_string()
         );
+        Ok(())
     }
 }

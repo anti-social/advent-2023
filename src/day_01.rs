@@ -1,4 +1,4 @@
-pub fn solve_1(input: &str) -> String {
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let mut res = 0;
     for row in input.lines() {
         let mut calibration_value = None;
@@ -14,10 +14,10 @@ pub fn solve_1(input: &str) -> String {
             res += n1 * 10 + n2;
         }
     }
-    return res.to_string();
+    Ok(res.to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
     let mut res = 0;
     for row in input.lines() {
         let mut calibration_value = None;
@@ -54,7 +54,7 @@ pub fn solve_2(input: &str) -> String {
             res += n1 * 10 + n2;
         }
     }
-    return res.to_string();
+    Ok(res.to_string())
 }
 
 #[cfg(test)]
@@ -79,18 +79,20 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT_1),
+            solve_1(EXAMPLE_INPUT_1)?,
             "142"
-        )
+        );
+        Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT_2),
+            solve_2(EXAMPLE_INPUT_2)?,
             "281"
-        )
+        );
+        Ok(())
     }
 }

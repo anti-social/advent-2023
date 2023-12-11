@@ -1,23 +1,38 @@
-pub fn solve_1(input: &str) -> String {
-    let nums = parse(input);
+use anyhow::Context;
+
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
+    let nums = parse(input)?;
     let res = nums.iter()
         .map(|l| calc_next_num(&l))
-        .fold(0, |acc, n| acc + n);
-    res.to_string()
+        .fold(Ok(0), |acc, n| {
+            match (acc, n) {
+                (Ok(acc), Ok(n)) => Ok(acc + n),
+                (Ok(_), Err(e)) => Err(e),
+                (Err(e), _) => Err(e),
+            }
+        })?;
+    Ok(res.to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
-    let nums = parse(input);
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
+    let nums = parse(input)?;
     let res = nums.iter()
         .map(|l| calc_prev_num(&l))
-        .fold(0, |acc, n| acc + n);
-    res.to_string()
+        .fold(Ok(0), |acc, n| {
+            match (acc, n) {
+                (Ok(acc), Ok(n)) => Ok(acc + n),
+                (Ok(_), Err(e)) => Err(e),
+                (Err(e), _) => Err(e),
+            }
+        })?;
+    Ok(res.to_string())
 }
 
-fn calc_next_num(nums: &[i64]) -> i64 {
+fn calc_next_num(nums: &[i64]) -> anyhow::Result<i64> {
     let mut diffs = vec!(nums.to_vec());
     loop {
-        let diff = diffs.last().unwrap().windows(2)
+        let diff = diffs.last().context("Expect at least one diff")?
+            .windows(2)
             .map(|v| v[1] - v[0])
             .collect::<Vec<_>>();
         if diff.iter().all(|n| *n == 0) {
@@ -28,15 +43,16 @@ fn calc_next_num(nums: &[i64]) -> i64 {
 
     let mut last_num = 0;
     for diff in diffs.iter().rev() {
-        last_num += diff.last().unwrap();
+        last_num += diff.last().context("Expect diff")?;
     }
-    last_num
+    Ok(last_num)
 }
 
-fn calc_prev_num(nums: &[i64]) -> i64 {
+fn calc_prev_num(nums: &[i64]) -> anyhow::Result<i64> {
     let mut diffs = vec!(nums.to_vec());
     loop {
-        let diff = diffs.last().unwrap().windows(2)
+        let diff = diffs.last().context("Expect at least one diff")?
+            .windows(2)
             .map(|v| v[1] - v[0])
             .collect::<Vec<_>>();
         if diff.iter().all(|n| *n == 0) {
@@ -47,12 +63,12 @@ fn calc_prev_num(nums: &[i64]) -> i64 {
 
     let mut first_num = 0;
     for diff in diffs.iter().rev() {
-        first_num = diff.first().unwrap() - first_num;
+        first_num = diff.first().context("Expect at least one diff")? - first_num;
     }
-    first_num
+    Ok(first_num)
 }
 
-fn parse(input: &str) -> Vec<Vec<i64>> {
+fn parse(input: &str) -> anyhow::Result<Vec<Vec<i64>>> {
     let mut nums = vec!();
     let lines = input.lines();
     for line in lines {
@@ -63,12 +79,12 @@ fn parse(input: &str) -> Vec<Vec<i64>> {
         let mut line_nums = vec!();
         for num_str in line.split(' ') {
             let num_str = num_str.trim();
-            line_nums.push(num_str.parse().expect("Number"));
+            line_nums.push(num_str.parse().context("Expect number")?);
         }
         nums.push(line_nums);
     }
 
-    nums
+    Ok(nums)
 }
 
 
@@ -86,36 +102,16 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "114".to_string()
         );
-    }
-
-    #[test]
-    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
-        let day = util::day_from_filename(file!())?;
-        let input = if let Some(input) = util::fetch_user_input(day)? {
-            input
-        } else {
-            return Ok(());
-        };
-
-        log::warn!("{}", solve_1(&input));
         Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT),
-            "2".to_string()
-        );
-    }
-
-    #[test]
-    fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
+    fn solve_1_with_user_input() -> anyhow::Result<()> {
         let day = util::day_from_filename(file!())?;
         let input = if let Some(input) = util::fetch_user_input(day)? {
             input
@@ -123,7 +119,29 @@ mod tests {
             return Ok(());
         };
 
-        log::warn!("{}", solve_2(&input));
+        log::warn!("{}", solve_1(&input)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_solve_2() -> anyhow::Result<()> {
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT)?,
+            "2".to_string()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn solve_2_with_user_input() -> anyhow::Result<()> {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
+            input
+        } else {
+            return Ok(());
+        };
+
+        log::warn!("{}", solve_2(&input)?);
         Ok(())
     }
 }

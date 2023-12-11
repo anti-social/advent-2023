@@ -1,17 +1,15 @@
-pub fn solve_1(input: &str) -> String {
-    let mut galaxies = parse(input);
-    expand(&mut galaxies, 2);
-    calc_total_dist(&galaxies).to_string()
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
+    solve_with_expansion_rate(input, 2)
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
     solve_with_expansion_rate(input, 1000_000)
 }
 
-pub fn solve_with_expansion_rate(input: &str, expansion_rate: usize) -> String {
+pub fn solve_with_expansion_rate(input: &str, expansion_rate: usize) -> crate::PuzzleResult {
     let mut galaxies = parse(input);
     expand(&mut galaxies, expansion_rate);
-    calc_total_dist(&galaxies).to_string()
+    Ok(calc_total_dist(&galaxies).to_string())
 }
 
 fn parse(input: &str) -> Vec<(usize, usize)> {
@@ -94,40 +92,16 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "374".to_string()
         );
-    }
-
-    #[test]
-    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
-        let day = util::day_from_filename(file!())?;
-        let input = if let Some(input) = util::fetch_user_input(day)? {
-            input
-        } else {
-            return Ok(());
-        };
-
-        log::warn!("{}", solve_1(&input));
         Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
-        assert_eq!(
-            solve_with_expansion_rate(EXAMPLE_INPUT, 10),
-            "1030".to_string()
-        );
-        assert_eq!(
-            solve_with_expansion_rate(EXAMPLE_INPUT, 100),
-            "8410".to_string()
-        );
-    }
-
-    #[test]
-    fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
+    fn solve_1_with_user_input() -> anyhow::Result<()> {
         let day = util::day_from_filename(file!())?;
         let input = if let Some(input) = util::fetch_user_input(day)? {
             input
@@ -135,7 +109,33 @@ mod tests {
             return Ok(());
         };
 
-        log::warn!("{}", solve_2(&input));
+        log::warn!("{}", solve_1(&input)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_solve_2() -> anyhow::Result<()> {
+        assert_eq!(
+            solve_with_expansion_rate(EXAMPLE_INPUT, 10)?,
+            "1030".to_string()
+        );
+        assert_eq!(
+            solve_with_expansion_rate(EXAMPLE_INPUT, 100)?,
+            "8410".to_string()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn solve_2_with_user_input() -> anyhow::Result<()> {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
+            input
+        } else {
+            return Ok(());
+        };
+
+        log::warn!("{}", solve_2(&input)?);
         Ok(())
     }
 }

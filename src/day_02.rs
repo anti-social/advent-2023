@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use anyhow::Context;
+
 const RED_CUBES: u32 = 12;
 const GREEN_CUBES: u32 = 13;
 const BLUE_CUBES: u32 = 14;
@@ -11,12 +13,13 @@ struct Game {
 }
 
 impl FromStr for Game {
-    type Err = &'static str;
+    type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(s) = s.strip_prefix("Game ") {
             if let Some((game_num_str, outecomes_str)) = s.split_once(':') {
-                let id = game_num_str.parse().map_err(|_| "Game identifier must be an integer")?;
+                let id = game_num_str.parse()
+                    .context("Game identifier must be an integer")?;
                 let mut outcomes = vec!();
                 for outcome_str in outecomes_str.split(';') {
                     let outcome_str = outcome_str.trim();
@@ -24,10 +27,10 @@ impl FromStr for Game {
                 }
                 Ok(Self { id, outcomes })
             } else {
-                Err("':' is expected before game outcomes")
+                anyhow::bail!("':' is expected before game outcomes")
             }
         } else {
-            Err("String must start with 'Game ' prefix")
+            anyhow::bail!("String must start with 'Game ' prefix")
         }
     }
 }
@@ -40,14 +43,15 @@ struct Outcome {
 }
 
 impl FromStr for Outcome {
-    type Err = &'static str;
+    type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut outcome = Outcome::default();
         for cube_str in s.split(',') {
             let cube_str = cube_str.trim();
             if let Some((part1, part2)) = cube_str.split_once(' ') {
-                let n = part1.parse().map_err(|_| "Cubes count must be an integer")?;
+                let n = part1.parse()
+                    .context("Cubes count must be an integer")?;
                 match part2 {
                     "red" => outcome.red = n,
                     "green" => outcome.green = n,
@@ -60,14 +64,14 @@ impl FromStr for Outcome {
     }
 }
 
-pub fn solve_1(input: &str) -> String {
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let mut res = 0;
     'outer: for line in input.split('\n') {
         let line = line.trim();
         if line.is_empty() {
             continue;
         }
-        let game = line.parse::<Game>().unwrap();
+        let game = line.parse::<Game>()?;
         for outcome in game.outcomes {
             if outcome.red > RED_CUBES {
                 continue 'outer;
@@ -81,17 +85,17 @@ pub fn solve_1(input: &str) -> String {
         }
         res += game.id;
     }
-    format!("{res}")
+    Ok(res.to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
     let mut res = 0;
     for line in input.split('\n') {
         let line = line.trim();
         if line.is_empty() {
             continue;
         }
-        let game = line.parse::<Game>().unwrap();
+        let game = line.parse::<Game>()?;
         let mut min_outcome = Outcome::default();
         for outcome in game.outcomes {
             if outcome.red > min_outcome.red {
@@ -106,7 +110,7 @@ pub fn solve_2(input: &str) -> String {
         }
         res += min_outcome.red * min_outcome.green * min_outcome.blue;
     }
-    format!("{res}")
+    Ok(res.to_string())
 }
 
 #[cfg(test)]
@@ -123,19 +127,20 @@ mod tests {
     "};
 
     #[test]
-    fn test_parse_outcome() {
+    fn test_parse_outcome() -> anyhow::Result<()> {
         assert_eq!(
-            "3 blue, 4 red".parse::<Outcome>().unwrap(),
+            "3 blue, 4 red".parse::<Outcome>()?,
             Outcome { red: 4, blue: 3, ..Default::default() }
         );
         assert_eq!(
-            "2 green".parse::<Outcome>().unwrap(),
+            "2 green".parse::<Outcome>()?,
             Outcome { green: 2, ..Default::default() }
         );
+        Ok(())
     }
 
     #[test]
-    fn test_parse_game() {
+    fn test_parse_game() -> anyhow::Result<()> {
         assert_eq!(
             "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green".parse::<Game>().unwrap(),
             Game {
@@ -147,21 +152,24 @@ mod tests {
                 )
             }
         );
+        Ok(())
     }
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "8".to_string()
-        )
+        );
+        Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT),
+            solve_2(EXAMPLE_INPUT)?,
             "2286".to_string()
-        )
+        );
+        Ok(())
     }
 }

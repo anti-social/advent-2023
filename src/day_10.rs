@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-pub fn solve_1(input: &str) -> String {
-    let (area, start_loc) = parse(input);
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
+    let (area, start_loc) = parse(input)?;
 
-    let pipe = calc_pipe_from_start(&area, start_loc);
-    (pipe.len() / 2).to_string()
+    let pipe = calc_pipe_from_start(&area, start_loc)?;
+    Ok((pipe.len() / 2).to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
-    let (area, start_loc) = parse(input);
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
+    let (area, start_loc) = parse(input)?;
 
-    let pipe = calc_pipe_from_start(&area, start_loc);
+    let pipe = calc_pipe_from_start(&area, start_loc)?;
     let mut tiles_inside = 0;
     for row_ix in 0..area.len() {
         for col_ix in 0..area[0].len() {
@@ -52,35 +52,40 @@ pub fn solve_2(input: &str) -> String {
             }
         }
     }
-    tiles_inside.to_string()
+    Ok(tiles_inside.to_string())
 }
 
-fn parse(input: &str) -> (Vec<Vec<char>>, (usize, usize)) {
-    let mut lines = vec!();
+fn parse(input: &str) -> anyhow::Result<(Vec<Vec<char>>, (usize, usize))> {
+    let mut num_cols = 0;
+    let mut rows = vec!();
     let mut start_loc = (0, 0);
     for (row_ix, line) in input.lines().enumerate() {
         let line = line.trim();
         if line.is_empty() {
             continue;
         }
-        lines.push(
-            line.chars().enumerate()
-                .map(|(col_ix, c)| {
-                    if c == 'S' {
-                        start_loc = (row_ix, col_ix);
-                    }
-                    c
-                })
-                .collect()
-        );
+        let row = line.chars().enumerate()
+            .map(|(col_ix, c)| {
+                if c == 'S' {
+                    start_loc = (row_ix, col_ix);
+                }
+                c
+            })
+            .collect::<Vec<_>>();
+        if num_cols == 0 {
+            num_cols = row.len();
+        } else if row.len() != num_cols {
+            anyhow::bail!("Expect {num_cols} columns")
+        }
+        rows.push(row);
     }
-    (lines, start_loc)
+    Ok((rows, start_loc))
 }
 
 fn calc_pipe_from_start(
     area: &Vec<Vec<char>>,
     start_loc: (usize, usize),
-) -> HashMap<(usize, usize), char> {
+) -> anyhow::Result<HashMap<(usize, usize), char>> {
     let rows = area.len();
     let cols = area[0].len();
 
@@ -123,7 +128,7 @@ fn calc_pipe_from_start(
     }
 
     if neighbour_locs.len() != 2 {
-        panic!("No connected pipes to the start point");
+        anyhow::bail!("No connected pipes to the start point");
     }
     neighbour_locs.sort();
     calc_pipe(area, start_loc, neighbour_locs[0])
@@ -133,7 +138,7 @@ fn calc_pipe(
     area: &Vec<Vec<char>>,
     start_loc: (usize, usize),
     cur_loc: (usize, usize),
-) -> HashMap<(usize, usize), char> {
+) -> anyhow::Result<HashMap<(usize, usize), char>> {
     let first_loc = cur_loc;
     let first_tile = area[cur_loc.0][cur_loc.1];
     let mut prev_loc = start_loc;
@@ -141,7 +146,7 @@ fn calc_pipe(
     let mut pipe = HashMap::new();
     let (last_loc, last_tile) = loop {
         pipe.insert(cur_loc, area[cur_loc.0][cur_loc.1]);
-        let next_loc = calc_next_loc(area, cur_loc, prev_loc);
+        let next_loc = calc_next_loc(area, cur_loc, prev_loc)?;
         prev_loc = cur_loc;
         let prev_tile = area[prev_loc.0][prev_loc.1];
         cur_loc = next_loc;
@@ -165,20 +170,20 @@ fn calc_pipe(
             _ => 'J'
         }
     } else {
-        panic!("Cannot find tile for start point")
+        anyhow::bail!("Cannot find tile for start point")
     };
     pipe.insert(start_loc, start_tile);
 
-    pipe
+    Ok(pipe)
 }
 
 fn calc_next_loc(
     area: &Vec<Vec<char>>,
     cur_loc: (usize, usize),
     prev_loc: (usize, usize),
-) -> (usize, usize) {
+) -> anyhow::Result<(usize, usize)> {
     let cur_tile = area[cur_loc.0][cur_loc.1];
-    match cur_tile {
+    let next_loc = match cur_tile {
         '|' => {
             if prev_loc.0 < cur_loc.0 {
                 (cur_loc.0 + 1, cur_loc.1)
@@ -221,8 +226,9 @@ fn calc_next_loc(
                 (cur_loc.0, cur_loc.1 - 1)
             }
         }
-        _ => panic!("Pipe is broken"),
-    }
+        _ => anyhow::bail!("Pipe is broken"),
+    };
+    Ok(next_loc)
 }
 
 #[cfg(test)]
@@ -283,56 +289,20 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT_1),
+            solve_1(EXAMPLE_INPUT_1)?,
             "4".to_string()
         );
         assert_eq!(
-            solve_1(EXAMPLE_INPUT_2),
+            solve_1(EXAMPLE_INPUT_2)?,
             "8".to_string()
         );
-    }
-
-    #[test]
-    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
-        let day = util::day_from_filename(file!())?;
-        let input = if let Some(input) = util::fetch_user_input(day)? {
-            input
-        } else {
-            return Ok(());
-        };
-
-        log::warn!("{}", solve_1(&input));
         Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT_1),
-            "1".to_string()
-        );
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT_2),
-            "1".to_string()
-        );
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT_3),
-            "4".to_string()
-        );
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT_4),
-            "8".to_string()
-        );
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT_5),
-            "10".to_string()
-        );
-    }
-
-    #[test]
-    fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
+    fn solve_1_with_user_input() -> anyhow::Result<()> {
         let day = util::day_from_filename(file!())?;
         let input = if let Some(input) = util::fetch_user_input(day)? {
             input
@@ -340,7 +310,45 @@ mod tests {
             return Ok(());
         };
 
-        log::warn!("{}", solve_2(&input));
+        log::warn!("{}", solve_1(&input)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_solve_2() -> anyhow::Result<()> {
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT_1)?,
+            "1".to_string()
+        );
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT_2)?,
+            "1".to_string()
+        );
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT_3)?,
+            "4".to_string()
+        );
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT_4)?,
+            "8".to_string()
+        );
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT_5)?,
+            "10".to_string()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn solve_2_with_user_input() -> anyhow::Result<()> {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
+            input
+        } else {
+            return Ok(());
+        };
+
+        log::warn!("{}", solve_2(&input)?);
         Ok(())
     }
 }

@@ -1,21 +1,23 @@
 use std::cmp::Ordering;
 
-pub fn solve_1(input: &str) -> String {
+use anyhow::Context;
+
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let mut lines = input.lines();
-    let time_line = lines.next().expect("Time line");
+    let time_line = lines.next().context("Expect time line")?;
     let times = if let Some((_, times_str)) = time_line.split_once(':') {
-        parse_nums(times_str.trim())
+        parse_nums(times_str.trim())?
     } else {
-        panic!("Missing time line")
+        anyhow::bail!("Missing time line")
     };
-    let dist_line = lines.next().expect("Distance line");
+    let dist_line = lines.next().context("Expect distance line")?;
     let distances = if let Some((_, distances_str)) = dist_line.split_once(':') {
-        parse_nums(distances_str.trim())
+        parse_nums(distances_str.trim())?
     } else {
-        panic!("Missing distance line")
+        anyhow::bail!("Missing distance line")
     };
-    log::debug!("Times: {times:?}");
-    log::debug!("Distances: {distances:?}");
+    // log::debug!("Times: {times:?}");
+    // log::debug!("Distances: {distances:?}");
 
     let mut res = 1;
     for (time, record_dist) in times.iter().zip(distances) {
@@ -32,25 +34,25 @@ pub fn solve_1(input: &str) -> String {
         }
         res *= num_of_winning_outcomes;
     }
-    res.to_string()
+    Ok(res.to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
     let mut lines = input.lines();
-    let time_line = lines.next().expect("Time line");
+    let time_line = lines.next().context("Expect time line")?;
     let time = if let Some((_, times_str)) = time_line.split_once(':') {
-        times_str.trim().replace(" ", "").parse::<u64>().expect("Time")
+        times_str.trim().replace(" ", "").parse::<u64>().context("Expect time")?
     } else {
-        panic!("Missing time line")
+        anyhow::bail!("Missing time line")
     };
-    let dist_line = lines.next().expect("Distance line");
+    let dist_line = lines.next().context("Expect distance line")?;
     let dist = if let Some((_, distances_str)) = dist_line.split_once(':') {
-        distances_str.trim().replace(" ", "").parse::<u64>().expect("Distance")
+        distances_str.trim().replace(" ", "").parse::<u64>().context("Expect distance")?
     } else {
-        panic!("Missing distance line")
+        anyhow::bail!("Missing distance line")
     };
-    log::debug!("Time: {time:?}");
-    log::debug!("Distance: {dist:?}");
+    // log::debug!("Time: {time:?}");
+    // log::debug!("Distance: {dist:?}");
 
     // t - total time
     // x - speedup time
@@ -58,16 +60,17 @@ pub fn solve_2(input: &str) -> String {
     // x * 1 - speed after speedup (1 is acceleration)
     // t - x - moving time
     // d = (t - x) * t => x^2 - t*x + d = 0
-    if let (Some(x1), Some(x2)) = solve_quadratic(-(time as f64), dist as f64) {
+    let res = if let (Some(x1), Some(x2)) = solve_quadratic(-(time as f64), dist as f64) {
         (x1.ceil() as i64) - (x2.ceil() as i64)
     } else {
         0
-    }.to_string()
+    };
+    Ok(res.to_string())
 }
 
-fn parse_nums(s: &str) -> Vec<u64> {
+fn parse_nums(s: &str) -> anyhow::Result<Vec<u64>> {
     s.split(' ')
-        .filter_map(|v| if v.is_empty() { None } else { v.parse().ok() })
+        .filter_map(|v| if v.is_empty() { None } else { Some(v.parse().context("Expect integer")) })
         .collect()
 }
 
@@ -105,15 +108,16 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "288".to_string()
         );
+        Ok(())
     }
 
     #[test]
-    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
+    fn solve_1_with_user_input() -> anyhow::Result<()> {
         let day = util::day_from_filename(file!())?;
         let input = if let Some(input) = util::fetch_user_input(day)? {
             input
@@ -122,16 +126,17 @@ mod tests {
         };
 
         log::debug!("{input}");
-        log::warn!("{}", solve_1(&input));
+        log::warn!("{}", solve_1(&input)?);
         Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT),
+            solve_2(EXAMPLE_INPUT)?,
             "71503".to_string()
         );
+        Ok(())
     }
 
     #[test]
@@ -144,7 +149,7 @@ mod tests {
         };
 
         log::debug!("{input}");
-        log::warn!("{}", solve_2(&input));
+        log::warn!("{}", solve_2(&input)?);
         Ok(())
     }
 }

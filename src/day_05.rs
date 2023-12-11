@@ -1,3 +1,5 @@
+use anyhow::Context;
+
 #[derive(Debug)]
 struct MapRange {
     dst_start: u64,
@@ -34,28 +36,28 @@ impl SeedRange {
     }
 }
 
-pub fn solve_1(input: &str) -> String {
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let mut lines = input.lines();
 
-    let seeds = parse_seeds(&mut lines);
+    let seeds = parse_seeds(&mut lines)?;
     assert!(
         matches!(lines.next(), Some(""))
     );
 
-    let maps = parse_maps(&mut lines);
+    let maps = parse_maps(&mut lines)?;
 
     let mut locs = vec!();
     for seed in seeds {
         locs.push(map_seed_to_loc(seed, &maps));
     }
 
-    locs.iter().min().unwrap().to_string()
+    Ok(locs.iter().min().unwrap().to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
     let mut lines = input.lines();
 
-    let seeds = parse_seeds(&mut lines);
+    let seeds = parse_seeds(&mut lines)?;
     let mut seed_ranges = seeds
         .chunks(2)
         .map(|v| SeedRange { start: v[0], len: v[1] })
@@ -64,7 +66,7 @@ pub fn solve_2(input: &str) -> String {
         matches!(lines.next(), Some(""))
     );
 
-    let maps = parse_maps(&mut lines);
+    let maps = parse_maps(&mut lines)?;
 
     for map in maps.iter() {
         let mut mapped_seed_ranges = vec!();
@@ -85,10 +87,13 @@ pub fn solve_2(input: &str) -> String {
             min_loc = loc_range.start;
         }
     }
-    min_loc.to_string()
+    Ok(min_loc.to_string())
 }
 
-fn map_seed_ranges(seed_ranges: &Vec<SeedRange>, map_range: &MapRange) -> (Vec<SeedRange>, Vec<SeedRange>) {
+fn map_seed_ranges(
+    seed_ranges: &Vec<SeedRange>,
+    map_range: &MapRange,
+) -> (Vec<SeedRange>, Vec<SeedRange>) {
     let mut mapped_seed_ranges = vec!();
     let mut not_mapped_seed_ranges = vec!();
     for seed_range in seed_ranges {
@@ -146,16 +151,17 @@ fn map_seed_range(seed_range: &SeedRange, map_range: &MapRange) -> (Option<SeedR
     )
 }
 
-fn parse_seeds<'a>(mut lines: impl Iterator<Item = &'a str>) -> Vec<u64> {
-    let seeds_line = lines.next().unwrap();
-    let (_name, seeds_str) =  seeds_line.split_once(':').unwrap();
+fn parse_seeds<'a>(mut lines: impl Iterator<Item = &'a str>) -> anyhow::Result<Vec<u64>> {
+    let seeds_line = lines.next().context("Expect more lines")?;
+    let (_name, seeds_str) =  seeds_line.split_once(':').context("Expect ':' at first line")?;
     seeds_str.trim().split(' ')
-        .map(str::parse::<u64>)
-        .filter_map(Result::ok)
+        .map(|v| v.parse().context("Expect integer"))
         .collect()
 }
 
-fn parse_maps<'a>(mut lines: impl Iterator<Item = &'a str>) -> Vec<Vec<MapRange>> {
+fn parse_maps<'a>(
+    mut lines: impl Iterator<Item = &'a str>
+) -> anyhow::Result<Vec<Vec<MapRange>>> {
     let mut maps = vec!();
     while let Some(_map_name_line) = lines.next() {
         let mut map = vec!();
@@ -169,9 +175,9 @@ fn parse_maps<'a>(mut lines: impl Iterator<Item = &'a str>) -> Vec<Vec<MapRange>
                 let mut map_range_parts = map_str.splitn(3, ' ')
                     .map(str::parse)
                     .filter_map(Result::ok);
-                let dst_start = map_range_parts.next().unwrap();
-                let src_start = map_range_parts.next().unwrap();
-                let len = map_range_parts.next().unwrap();
+                let dst_start = map_range_parts.next().context("Expect destination start")?;
+                let src_start = map_range_parts.next().context("Expect source start")?;
+                let len = map_range_parts.next().context("Expect map range")?;
                 let map_range = MapRange { dst_start, src_start, len };
                 map.push(map_range);
             } else {
@@ -180,7 +186,7 @@ fn parse_maps<'a>(mut lines: impl Iterator<Item = &'a str>) -> Vec<Vec<MapRange>
         }
         maps.push(map);
     }
-    maps
+    Ok(maps)
 }
 
 fn map_seed_to_loc(seed: u64, maps: &Vec<Vec<MapRange>>) -> u64 {
@@ -240,19 +246,21 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "35".to_string()
         );
+        Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT),
+            solve_2(EXAMPLE_INPUT)?,
             "46".to_string()
         );
+        Ok(())
     }
 
     #[test]

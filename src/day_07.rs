@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use anyhow::Context;
+
 use counter::Counter;
 
 const CARDS: &'static [char] = &[
@@ -47,13 +49,13 @@ struct Hand {
     pub cards: Cards,
 }
 
-pub fn solve_1(input: &str) -> String {
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let card_ordinals = build_card_ordinals(CARDS);
 
     let lines = input.lines();
     let mut hands_with_bids = vec!();
     for line in lines {
-        if let Some((cards, bid)) = parse_cards_and_bid(line, &card_ordinals) {
+        if let Some((cards, bid)) = parse_cards_and_bid(line, &card_ordinals)? {
             let hand_type = HandType::from_cards(&cards);
             hands_with_bids.push(
                 (Hand { cards, hand_type }, bid)
@@ -62,16 +64,16 @@ pub fn solve_1(input: &str) -> String {
     }
     hands_with_bids.sort_by_key(|(h, _)| *h);
 
-    calc_total_score(&hands_with_bids).to_string()
+    Ok(calc_total_score(&hands_with_bids).to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
     let card_ordinals = build_card_ordinals(CARDS_WITH_JOKER);
 
     let lines = input.lines();
     let mut hands_with_bids = vec!();
     for line in lines {
-        if let Some((cards, bid)) = parse_cards_and_bid(line, &card_ordinals) {
+        if let Some((cards, bid)) = parse_cards_and_bid(line, &card_ordinals)? {
             let upgraded_cards = promote_jokers(&cards);
             let hand_type = HandType::from_cards(&upgraded_cards);
             hands_with_bids.push(
@@ -81,7 +83,7 @@ pub fn solve_2(input: &str) -> String {
     }
     hands_with_bids.sort_by_key(|(h, _)| *h);
 
-    calc_total_score(&hands_with_bids).to_string()
+    Ok(calc_total_score(&hands_with_bids).to_string())
 }
 
 fn build_card_ordinals(cards_order: &[char]) -> HashMap<char, u8> {
@@ -92,28 +94,34 @@ fn build_card_ordinals(cards_order: &[char]) -> HashMap<char, u8> {
     card_to_ord
 }
 
-fn parse_cards_and_bid(line: &str, card_ords: &HashMap<char, u8>) -> Option<(Cards, u64)> {
+fn parse_cards_and_bid(
+    line: &str,
+    card_ords: &HashMap<char, u8>
+) -> anyhow::Result<Option<(Cards, u64)>> {
     let line = line.trim();
     if line.is_empty() {
-        return None;
+        return Ok(None);
     }
     if let Some((cards_str, bid_str)) = line.split_once(' ') {
         let cards_str = cards_str.trim();
-        let cards = parse_cards(cards_str, &card_ords);
+        let cards = parse_cards(cards_str, &card_ords)?;
         let bid_str = bid_str.trim();
-        let bid = bid_str.parse().expect("bid number");
-        Some((cards, bid))
+        let bid = bid_str.parse().context("Expect bid number")?;
+        Ok(Some((cards, bid)))
     } else {
-        None
+        Ok(None)
     }
 }
 
-fn parse_cards(s: &str, card_ords: &HashMap<char, u8>) -> Cards {
+fn parse_cards(
+    s: &str,
+    card_ords: &HashMap<char, u8>
+) -> anyhow::Result<Cards> {
     s.chars()
-     .map(|c| card_ords[&c] as u8)
-     .collect::<Vec<_>>()
+        .map(|c| card_ords[&c] as u8)
+        .collect::<Vec<_>>()
         .try_into()
-        .expect("5 cards in hand")
+        .map_err(|_| anyhow::anyhow!("Expect 5 cards in hand"))
 }
 
 fn promote_jokers(cards: &Cards) -> Cards {
@@ -155,36 +163,16 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT),
+            solve_1(EXAMPLE_INPUT)?,
             "6440".to_string()
         );
-    }
-
-    #[test]
-    fn solve_1_with_user_input() -> Result<(), anyhow::Error> {
-        let day = util::day_from_filename(file!())?;
-        let input = if let Some(input) = util::fetch_user_input(day)? {
-            input
-        } else {
-            return Ok(());
-        };
-
-        log::warn!("{}", solve_1(&input));
         Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
-        assert_eq!(
-            solve_2(EXAMPLE_INPUT),
-            "5905".to_string()
-        );
-    }
-
-    #[test]
-    fn solve_2_with_user_input() -> Result<(), anyhow::Error> {
+    fn solve_1_with_user_input() -> anyhow::Result<()> {
         let day = util::day_from_filename(file!())?;
         let input = if let Some(input) = util::fetch_user_input(day)? {
             input
@@ -192,7 +180,29 @@ mod tests {
             return Ok(());
         };
 
-        log::warn!("{}", solve_2(&input));
+        log::warn!("{}", solve_1(&input)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_solve_2() -> anyhow::Result<()> {
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT)?,
+            "5905".to_string()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn solve_2_with_user_input() -> anyhow::Result<()> {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
+            input
+        } else {
+            return Ok(());
+        };
+
+        log::warn!("{}", solve_2(&input)?);
         Ok(())
     }
 }

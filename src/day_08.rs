@@ -1,28 +1,30 @@
 use std::collections::HashMap;
 
+use anyhow::Context;
+
 use num::integer::lcm;
 
-pub fn solve_1(input: &str) -> String {
-    let (navigation, network) = parse(input);
+pub fn solve_1(input: &str) -> crate::PuzzleResult {
+    let (navigation, network) = parse(input)?;
 
     let steps = find_num_steps("AAA", navigation, &network, |n| n == "ZZZ");
-    steps.to_string()
+    Ok(steps.to_string())
 }
 
-pub fn solve_2(input: &str) -> String {
-    let (navigation, network) = parse(input);
+pub fn solve_2(input: &str) -> crate::PuzzleResult {
+    let (navigation, network) = parse(input)?;
 
     let steps = network.keys()
         .filter(|n| n.ends_with("A"))
         .map(|n| find_num_steps(n, navigation, &network, |n| n.ends_with("Z")))
         .fold(1, lcm);
 
-    steps.to_string()
+    Ok(steps.to_string())
 }
 
-fn parse(input: &str) -> (&str, HashMap<&str, (&str, &str)>) {
+fn parse(input: &str) -> anyhow::Result<(&str, HashMap<&str, (&str, &str)>)> {
     let mut lines = input.lines();
-    let navigation = lines.next().expect("Navigation line");
+    let navigation = lines.next().context("Expect navigation line")?;
     let mut network = HashMap::new();
     for line in lines {
         let line = line.trim();
@@ -33,15 +35,15 @@ fn parse(input: &str) -> (&str, HashMap<&str, (&str, &str)>) {
             let node = node.trim();
             if let Some((left_node, right_node)) = neighbours.split_once(',') {
                 let left_node = left_node.trim();
-                let left_node = left_node.strip_prefix("(").unwrap_or(left_node);
+                let left_node = left_node.strip_prefix("(").context("Expect '('")?;
                 let right_node = right_node.trim();
-                let right_node = right_node.strip_suffix(")").unwrap_or(right_node);
+                let right_node = right_node.strip_suffix(")").context("Expect ')'")?;
                 network.insert(node, (left_node, right_node));
             }
         }
     }
 
-    (navigation, network)
+    Ok((navigation, network))
 }
 
 pub fn find_num_steps(
@@ -105,15 +107,16 @@ mod tests {
     "};
 
     #[test]
-    fn test_solve_1() {
+    fn test_solve_1() -> anyhow::Result<()> {
         assert_eq!(
-            solve_1(EXAMPLE_INPUT_1),
+            solve_1(EXAMPLE_INPUT_1)?,
             "2".to_string()
         );
         assert_eq!(
-            solve_1(EXAMPLE_INPUT_2),
+            solve_1(EXAMPLE_INPUT_2)?,
             "6".to_string()
         );
+        Ok(())
     }
 
     #[test]
@@ -125,16 +128,17 @@ mod tests {
             return Ok(());
         };
 
-        log::warn!("{}", solve_1(&input));
+        log::warn!("{}", solve_1(&input)?);
         Ok(())
     }
 
     #[test]
-    fn test_solve_2() {
+    fn test_solve_2() -> anyhow::Result<()> {
         assert_eq!(
-            solve_2(EXAMPLE_INPUT_3),
+            solve_2(EXAMPLE_INPUT_3)?,
             "6".to_string()
         );
+        Ok(())
     }
 
     #[test]
@@ -146,7 +150,7 @@ mod tests {
             return Ok(());
         };
 
-        log::warn!("{}", solve_2(&input));
+        log::warn!("{}", solve_2(&input)?);
         Ok(())
     }
 }
