@@ -54,7 +54,7 @@ fn calc_prev_num(nums: &[i64]) -> i64 {
 
 fn parse(input: &str) -> Vec<Vec<i64>> {
     let mut nums = vec!();
-    let mut lines = input.lines();
+    let lines = input.lines();
     for line in lines {
         let line = line.trim();
         if line.is_empty() {
