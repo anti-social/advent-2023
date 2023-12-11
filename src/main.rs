@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 use dioxus::prelude::*;
 
@@ -29,7 +29,7 @@ macro_rules! days {
     };
 }
 
-days!(01, 02, 03, 04, 05, 06, 07, 08, 09);
+days!(01, 02, 03, 04, 05, 06, 07, 08, 09, 10);
 
 struct Day {
     pub ord: u32,
@@ -46,20 +46,6 @@ impl Day {
         solve2: fn(&str) -> String,
     ) -> Self {
         Self { ord, code, solve1, solve2 }
-    }
-}
-
-struct Puzzle {
-    pub code: &'static str,
-    pub solve: fn(&str) -> String,
-}
-
-impl Puzzle {
-    const fn new(
-        code: &'static str,
-        solve: fn(&str) -> String,
-    ) -> Self {
-        Self { code, solve }
     }
 }
 
@@ -98,22 +84,23 @@ fn Solver(cx: Scope) -> Element {
     } else {
         "01-1".to_string()
     };
-    let puzzles = DAYS.iter()
+    let puzzle_solvers = DAYS.iter()
         .flat_map(|d| {
             [
-                (format!("{:0>2}-1", d.ord), Puzzle::new(d.code, d.solve1)),
-                (format!("{:0>2}-2", d.ord), Puzzle::new(d.code, d.solve2))
+                (format!("{:0>2}-1", d.ord), d.solve1),
+                (format!("{:0>2}-2", d.ord), d.solve2)
             ]
         })
-        .collect::<BTreeMap<_, _>>();
+        .collect::<HashMap<_, _>>();
 
     render!{
         form {
             onsubmit: move |event| {
                 let input = &event.data.values["input"][0];
-                let (res, dur) = if let Some(puzzle) = &puzzles.get(event.data.values["task"][0].as_str()) {
+                let puzzle_id = event.data.values["puzzle"][0].as_str();
+                let (res, dur) = if let Some(solver) = &puzzle_solvers.get(puzzle_id) {
                     let start = perf.now();
-                    let res = (puzzle.solve)(input);
+                    let res = solver(input);
                     let end = perf.now();
                     (res, Some(end - start))
                 } else {
@@ -138,7 +125,7 @@ fn Solver(cx: Scope) -> Element {
                         textarea {
                             name: "input",
                             placeholder: "Paste your input data",
-                            class: "block p-2 w-full resize border bg-gray-50",
+                            class: "block p-2 w-full resize border bg-gray-50 font-mono",
                             rows: "20",
                         }
                     }
