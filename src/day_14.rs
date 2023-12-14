@@ -1,6 +1,13 @@
-use std::mem::swap;
+use std::{mem::swap, collections::HashMap};
 
-use itertools::Itertools;
+use sha1::{
+    Sha1,
+    Digest,
+    digest::{
+        generic_array::GenericArray,
+        typenum::U20,
+    }
+};
 
 pub fn solve_1(input: &str) -> crate::PuzzleResult {
     let mut platform = parse(input)?;
@@ -13,44 +20,31 @@ pub fn solve_1(input: &str) -> crate::PuzzleResult {
 
 pub fn solve_2(input: &str) -> crate::PuzzleResult {
     let mut platform = parse(input)?;
-    // print_platform(&platform);
-    // println!();
 
-    let mut weights = Vec::with_capacity(500);
-    for _ in 0..weights.capacity() {
+    let mut seen_states = HashMap::new();
+    let mut weights = vec!();
+    let mut cur_ix = 0usize;
+    let (offset_to_repeat, cycle_len) = loop {
         while shift_north(&mut platform) != 0 {}
         while shift_west(&mut platform) != 0 {}
         while shift_south(&mut platform) != 0 {}
         while shift_east(&mut platform) != 0 {}
-        weights.push(calc_weight(&platform));
-        // dbg!(calc_weight(&platform));
-    }
 
-    let mut chunks = Vec::with_capacity(5);
-    let mut offset_to_repeat = 0;
-    let mut cycle_len = 0;
-    'outer: for offset in 0..weights.len() {
-        for chunk_len in 1..(weights.len() - offset) / chunks.capacity() {
-            chunks.clear();
-            for i in 0..chunks.capacity() {
-                chunks.push(&weights[offset + chunk_len * i..offset + chunk_len * (i + 1)]);
-            }
-            if chunks.iter().all_equal() {
-                // dbg!(chunks[0]);
-                offset_to_repeat = offset;
-                cycle_len = chunk_len;
-                break 'outer;
-            }
+        let hash = calc_hash(&platform);
+        if let Some(prev_ix) = seen_states.get(&hash) {
+            break (prev_ix, cur_ix - prev_ix);
         }
-    }
+        let weight = calc_weight(&platform);
+        weights.push(weight);
+        seen_states.insert(hash, cur_ix);
+        cur_ix += 1;
+    };
 
     if cycle_len == 0 {
-        anyhow::bail!("Invalid cycle value")
+        anyhow::bail!("Invalid cycle length value")
     }
 
     let weight_ix = (1_000_000_000 - offset_to_repeat) % cycle_len;
-    // dbg!(offset_to_repeat);
-    // dbg!(weight_ix);
     Ok(weights[offset_to_repeat + weight_ix - 1].to_string())
 }
 
@@ -67,6 +61,18 @@ fn parse(input: &str) -> anyhow::Result<Vec<Vec<char>>> {
     }
 
     Ok(records)
+}
+
+fn calc_hash(platform: &[Vec<char>]) -> GenericArray<u8, U20> {
+    let mut hasher = Sha1::new();
+    let mut buf = [0; 1];
+    for row in platform {
+        for c in row {
+            c.encode_utf8(&mut buf);
+            hasher.update(&buf);
+        }
+    }
+    hasher.finalize()
 }
 
 fn print_platform(platform: &[Vec<char>]) {
@@ -185,36 +191,36 @@ mod tests {
         #OO..#....
     "};
 
-    // #[test]
-    // fn test_solve_1() -> anyhow::Result<()> {
-    //     assert_eq!(
-    //         solve_1(EXAMPLE_INPUT)?,
-    //         "136".to_string()
-    //     );
-    //     Ok(())
-    // }
+    #[test]
+    fn test_solve_1() -> anyhow::Result<()> {
+        assert_eq!(
+            solve_1(EXAMPLE_INPUT)?,
+            "136".to_string()
+        );
+        Ok(())
+    }
 
-    // #[test]
-    // fn solve_1_with_user_input() -> anyhow::Result<()> {
-    //     let day = util::day_from_filename(file!())?;
-    //     let input = if let Some(input) = util::fetch_user_input(day)? {
-    //         input
-    //     } else {
-    //         return Ok(());
-    //     };
+    #[test]
+    fn solve_1_with_user_input() -> anyhow::Result<()> {
+        let day = util::day_from_filename(file!())?;
+        let input = if let Some(input) = util::fetch_user_input(day)? {
+            input
+        } else {
+            return Ok(());
+        };
 
-    //     log::warn!("{}", solve_1(&input)?);
-    //     Ok(())
-    // }
+        log::warn!("{}", solve_1(&input)?);
+        Ok(())
+    }
 
-    // #[test]
-    // fn test_solve_2() -> anyhow::Result<()> {
-    //     assert_eq!(
-    //         solve_2(EXAMPLE_INPUT)?,
-    //         "64".to_string()
-    //     );
-    //     Ok(())
-    // }
+    #[test]
+    fn test_solve_2() -> anyhow::Result<()> {
+        assert_eq!(
+            solve_2(EXAMPLE_INPUT)?,
+            "64".to_string()
+        );
+        Ok(())
+    }
 
     #[test]
     fn solve_2_with_user_input() -> anyhow::Result<()> {
